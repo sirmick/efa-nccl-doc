@@ -4,11 +4,13 @@ const ALGORITHMS = {
         name: 'Ring + Simple',
         color: '#9b59b6',
         enabled: true,
-        // T = 2(N-1)*α + 2*β*S*(N-1)/N
+        docLink: '../algorithms/ring-algorithm.md',
+        formula: 'T = 2(N-1)×α + 2×β×S×(N-1)/N',
+        params: 'N=ranks, α=network latency, β=1/bandwidth, S=message size',
         latency: (params, S) => {
             const N = params.totalRanks;
             const alpha = params.alphaNetwork;
-            const beta = 1 / (params.bwNetwork * 1e9); // Convert GB/s to s/byte
+            const beta = 1 / (params.bwNetwork * 1e9);
             return 2 * (N - 1) * alpha * 1e-6 + 2 * beta * S * (N - 1) / N;
         }
     },
@@ -16,9 +18,12 @@ const ALGORITHMS = {
         name: 'Ring + LL128',
         color: '#4d96ff',
         enabled: true,
+        docLink: '../algorithms/ring-algorithm.md#protocol-specific-latency',
+        formula: 'T = 2(N-1)×α_LL128 + 2×β×overhead×S×(N-1)/N',
+        params: 'α_LL128=1.5×α_network, overhead=1.0625 (8-byte metadata per 128-byte chunk)',
         latency: (params, S) => {
             const N = params.totalRanks;
-            const alpha = params.alphaNetwork * 1.5; // Higher latency for LL128
+            const alpha = params.alphaNetwork * 1.5;
             const beta = (1 / (params.bwNetwork * 1e9)) * params.ll128Overhead;
             return 2 * (N - 1) * alpha * 1e-6 + 2 * beta * S * (N - 1) / N;
         }
@@ -27,9 +32,12 @@ const ALGORITHMS = {
         name: 'Ring + LL',
         color: '#6bcf7f',
         enabled: true,
+        docLink: '../algorithms/ring-algorithm.md#protocol-specific-latency',
+        formula: 'T = 2(N-1)×α_LL + 2×β×overhead×S×(N-1)/N',
+        params: 'α_LL=1.2×α_network, overhead=3.0 (8-byte chunks with flags)',
         latency: (params, S) => {
             const N = params.totalRanks;
-            const alpha = params.alphaNetwork * 1.2; // Slightly higher latency
+            const alpha = params.alphaNetwork * 1.2;
             const beta = (1 / (params.bwNetwork * 1e9)) * params.llOverhead;
             return 2 * (N - 1) * alpha * 1e-6 + 2 * beta * S * (N - 1) / N;
         }
@@ -38,7 +46,9 @@ const ALGORITHMS = {
         name: 'Tree + Simple',
         color: '#ffd93d',
         enabled: true,
-        // T = 2*log2(N)*α + log2(N)*β*S
+        docLink: '../algorithms/tree-algorithm.md',
+        formula: 'T = 2×log₂(N)×α + log₂(N)×β×S',
+        params: 'N=ranks, α=network latency, β=1/bandwidth, S=message size',
         latency: (params, S) => {
             const N = params.totalRanks;
             const logN = Math.log2(N);
@@ -51,6 +61,9 @@ const ALGORITHMS = {
         name: 'Tree + LL128',
         color: '#ff8c42',
         enabled: true,
+        docLink: '../algorithms/tree-algorithm.md#protocol-specific-latency',
+        formula: 'T = 2×log₂(N)×α_LL128 + log₂(N)×β×overhead×S',
+        params: 'α_LL128=1.3×α_network, overhead=1.0625',
         latency: (params, S) => {
             const N = params.totalRanks;
             const logN = Math.log2(N);
@@ -63,6 +76,9 @@ const ALGORITHMS = {
         name: 'Tree + LL',
         color: '#ff6b6b',
         enabled: true,
+        docLink: '../algorithms/tree-algorithm.md#protocol-specific-latency',
+        formula: 'T = 2×log₂(N)×α_LL + log₂(N)×β×overhead×S',
+        params: 'α_LL=1.1×α_network, overhead=3.0',
         latency: (params, S) => {
             const N = params.totalRanks;
             const logN = Math.log2(N);
@@ -75,8 +91,9 @@ const ALGORITHMS = {
         name: 'NVLS Tree + Simple',
         color: '#f39c12',
         enabled: true,
-        // Intra-node: T = 2*α_nvls + 2*β_nvlink*S
-        // Multi-node: adds 2*log2(M)*α_network + 2*log2(M)*β_network*S
+        docLink: '../algorithms/nvls-tree-algorithm.md',
+        formula: 'T = 2×α_nvls + 2×β_nvlink×S + 2×log₂(M)×α_net + 2×log₂(M)×β_net×S',
+        params: 'M=nodes, α_nvls=NVLS latency, β_nvlink=1/NVLink BW, α_net=network latency, β_net=1/network BW',
         latency: (params, S) => {
             const M = params.numNodes;
             const logM = Math.log2(M);
@@ -84,8 +101,6 @@ const ALGORITHMS = {
             const alphaNet = params.alphaNetwork;
             const betaNVLink = 1 / (params.bwNVLink * 1e9);
             const betaNet = 1 / (params.bwNetwork * 1e9);
-
-            // Intra-node NVLink + inter-node network
             return 2 * alphaNVLS * 1e-6 + 2 * betaNVLink * S +
                    2 * logM * alphaNet * 1e-6 + 2 * logM * betaNet * S;
         }
@@ -94,7 +109,9 @@ const ALGORITHMS = {
         name: 'PAT + Simple',
         color: '#1abc9c',
         enabled: true,
-        // T = log2(N)*α + β*S*(N-1)/N
+        docLink: '../algorithms/pat-algorithm.md',
+        formula: 'T = log₂(N)×α + β×S×(N-1)/N',
+        params: 'N=ranks, α=network latency, β=1/bandwidth, S=message size',
         latency: (params, S) => {
             const N = params.totalRanks;
             const logN = Math.log2(N);
@@ -331,6 +348,9 @@ function updateChart() {
 
     // Update info cards
     updateInfoCards(perfData, maxBandwidths);
+
+    // Update equations display
+    updateEquations();
 }
 
 function drawAxes(margin, width, height, minSize, maxSize, maxBW) {
@@ -515,6 +535,49 @@ function addInfoCard(title, value, label) {
         <div class="info-label">${label}</div>
     `;
     infoGrid.appendChild(card);
+}
+
+function updateEquations() {
+    const equationsDisplay = document.getElementById('equationsDisplay');
+    equationsDisplay.innerHTML = '';
+
+    Object.keys(ALGORITHMS).forEach(key => {
+        const algo = ALGORITHMS[key];
+        if (!algo.enabled) return;
+
+        const item = document.createElement('div');
+        item.className = 'equation-item';
+        item.style.borderLeftColor = algo.color;
+
+        const header = document.createElement('div');
+        header.className = 'equation-header';
+
+        const name = document.createElement('div');
+        name.className = 'equation-name';
+        name.textContent = algo.name;
+
+        const link = document.createElement('a');
+        link.className = 'equation-link';
+        link.href = algo.docLink;
+        link.textContent = '📖 Documentation';
+        link.target = '_blank';
+
+        header.appendChild(name);
+        header.appendChild(link);
+
+        const formula = document.createElement('div');
+        formula.className = 'equation-formula';
+        formula.textContent = algo.formula;
+
+        const paramsDiv = document.createElement('div');
+        paramsDiv.className = 'equation-params';
+        paramsDiv.textContent = algo.params;
+
+        item.appendChild(header);
+        item.appendChild(formula);
+        item.appendChild(paramsDiv);
+        equationsDisplay.appendChild(item);
+    });
 }
 
 function sizeToCanvas(size, minSize, maxSize, width) {
