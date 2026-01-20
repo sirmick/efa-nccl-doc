@@ -197,10 +197,29 @@ function setupAlgorithmCheckboxes() {
     });
 }
 
-function calculateBandwidth(latency, messageSize) {
-    // Bandwidth = messageSize / latency (in GB/s)
+function calculateBandwidth(latency, messageSize, collective, nranks) {
+    // Algorithm bandwidth = messageSize / latency (in GB/s)
     if (latency <= 0) return 0;
-    return messageSize / latency / 1e9; // Convert to GB/s
+    const algBw = messageSize / latency / 1e9; // Convert to GB/s
+
+    // Bus bandwidth factor depends on collective type (from NCCL tests)
+    let busFactor;
+    switch(collective) {
+        case 'AllReduce':
+            busFactor = (2 * (nranks - 1)) / nranks;
+            break;
+        case 'AllGather':
+        case 'ReduceScatter':
+            busFactor = (nranks - 1) / nranks;
+            break;
+        case 'Broadcast':
+            busFactor = 1.0;
+            break;
+        default:
+            busFactor = 1.0;
+    }
+
+    return algBw * busFactor; // Return bus bandwidth
 }
 
 function updateChart() {
@@ -224,7 +243,7 @@ function updateChart() {
 
         perfData[key] = messageSizes.map((size, idx) => {
             const latency = algo.latency(params, size);
-            const bandwidth = calculateBandwidth(latency, size);
+            const bandwidth = calculateBandwidth(latency, size, params.collective, params.totalRanks);
 
             // Track maximum bandwidth at each message size
             if (bandwidth > maxBandwidths[idx]) {
@@ -340,7 +359,7 @@ function drawAxes(margin, width, height, minSize, maxSize, maxBW) {
     ctx.save();
     ctx.translate(margin.left - 60, margin.top + height / 2);
     ctx.rotate(-Math.PI / 2);
-    ctx.fillText('Bandwidth (GB/s)', 0, 0);
+    ctx.fillText('Bus Bandwidth (GB/s)', 0, 0);
     ctx.restore();
 
     // Title
