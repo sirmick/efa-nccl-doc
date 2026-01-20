@@ -90,7 +90,7 @@ const ALGORITHMS = {
     'NVLS_Tree_Simple': {
         name: 'NVLS Tree + Simple',
         color: '#f39c12',
-        enabled: false,
+        enabled: true,
         docLink: '../algorithms/nvls-tree-algorithm.md',
         formula: 'T = 2×α_nvls + 2×β_nvlink×S + 2×log₂(M)×α_net + 2×log₂(M)×β_net×S',
         params: 'M=nodes, α_nvls=NVLS latency, β_nvlink=1/NVLink BW, α_net=network latency, β_net=1/network BW',
@@ -305,38 +305,6 @@ function updateChart() {
 
         ctx.stroke();
     });
-
-    // Draw maximum performance envelope in bold
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-
-    messageSizes.forEach((size, i) => {
-        const x = sizeToCanvas(size, minSize, maxSize, plotWidth);
-        const y = bwToCanvas(maxBandwidths[i], 0, maxBW, plotHeight);
-
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    });
-
-    ctx.stroke();
-
-    // Add white outline for better visibility
-    ctx.strokeStyle = '#0d1117';
-    ctx.lineWidth = 6;
-    ctx.globalCompositeOperation = 'destination-over';
-    ctx.beginPath();
-    messageSizes.forEach((size, i) => {
-        const x = sizeToCanvas(size, minSize, maxSize, plotWidth);
-        const y = bwToCanvas(maxBandwidths[i], 0, maxBW, plotHeight);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-    });
-    ctx.stroke();
-    ctx.globalCompositeOperation = 'source-over';
 
     ctx.restore();
 
