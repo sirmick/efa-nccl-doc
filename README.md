@@ -64,6 +64,7 @@ This documentation provides in-depth coverage of the complete stack used for GPU
 ## Interactive Tools
 
 - **[Region-Based Tuner Visualizer](region-visualizer/)** - Interactive visualization of AWS OFI NCCL tuner algorithm/protocol selection regions for p5/p5en instances ([Live Demo](https://sirmick.github.io/efa-nccl-doc/region-visualizer/))
+- **[Algorithm Performance Visualizer](algorithm-visualizer/)** - Theoretical bandwidth analysis showing performance vs message size for different algorithms (Ring, Tree, NVLS Tree, PAT) with configurable hardware parameters ([Live Demo](https://sirmick.github.io/efa-nccl-doc/algorithm-visualizer/))
 
 ## Quick Start
 
