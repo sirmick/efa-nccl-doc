@@ -851,6 +851,10 @@ function canvasToData(canvasX, canvasY) {
     canvasX -= margin.left;
     canvasY -= margin.top;
 
+    // Clamp to canvas bounds
+    canvasX = Math.max(0, Math.min(width, canvasX));
+    canvasY = Math.max(0, Math.min(height, canvasY));
+
     // X (log scale)
     const xRatio = canvasX / width;
     const logMin = Math.log10(Math.max(1, bounds.minX));

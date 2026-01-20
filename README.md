@@ -61,6 +61,10 @@ This documentation provides in-depth coverage of the complete stack used for GPU
 - **[neuron-memory.md](neuron-memory.md)** - AWS Trainium/Inferentia with P2P registration (not dmabuf)
 - **[rocm-memory.md](rocm-memory.md)** - AMD ROCm with HIP API (CUDA-compatible)
 
+## Interactive Tools
+
+- **[Region-Based Tuner Visualizer](region-visualizer/)** - Interactive visualization of AWS OFI NCCL tuner algorithm/protocol selection regions for p5/p5en instances ([Live Demo](https://sirmick.github.io/efa-nccl-doc/region-visualizer/))
+
 ## Quick Start
 
 ### Understanding the Stack
