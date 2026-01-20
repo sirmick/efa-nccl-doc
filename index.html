@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NCCL Region-Based Tuner Visualizer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #0d1117;
+            color: #c9d1d9;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        h1 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #8b949e;
+            font-size: 14px;
+        }
+
+        .controls {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            font-weight: 600;
+            color: #c9d1d9;
+            min-width: 120px;
+        }
+
+        select, input {
+            background: #0d1117;
+            color: #c9d1d9;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+        select {
+            min-width: 200px;
+        }
+
+        input[type="number"] {
+            width: 150px;
+        }
+
+        button {
+            background: #238636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #2ea043;
+        }
+
+        .canvas-container {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: #0d1117;
+            border-radius: 4px;
+            cursor: crosshair;
+        }
+
+        .legend {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .legend h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .legend-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: #0d1117;
+            border-radius: 4px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            border: 1px solid #30363d;
+        }
+
+        .legend-label {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .info-panel {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 20px;
+        }
+
+        .info-panel h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .info-item {
+            padding: 10px;
+            background: #0d1117;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+
+        .info-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #8b949e;
+            font-size: 12px;
+            margin-bottom: 5px;
+        }
+
+        .info-value {
+            color: #c9d1d9;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .highlight {
+            color: #58a6ff;
+            font-weight: 600;
+        }
+
+        .tooltip {
+            position: fixed;
+            background: #1c2128;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        .tooltip.show {
+            display: block;
+        }
+
+        .axis-label {
+            font-size: 12px;
+            fill: #8b949e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NCCL Region-Based Tuner Visualizer</h1>
+            <p class="subtitle">Interactive visualization of AWS OFI NCCL tuner regions for algorithm/protocol selection</p>
+        </header>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="platform">Platform:</label>
+                <select id="platform">
+                    <option value="p5en">p5en.48xlarge (H200, EFAv3)</option>
+                    <option value="p5">p5.48xlarge / p5e.48xlarge (H100, EFA Gen 3)</option>
+                </select>
+
+                <label for="collective">Collective:</label>
+                <select id="collective">
+                    <option value="AllReduce">AllReduce</option>
+                    <option value="AllGather">AllGather</option>
+                    <option value="ReduceScatter">ReduceScatter</option>
+                </select>
+
+                <label for="config">Configuration:</label>
+                <select id="config">
+                    <option value="8rpn">8 ranks per node (8×N)</option>
+                    <option value="1rpn">1 rank per node (1×N)</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="testSize">Test Message Size:</label>
+                <input type="number" id="testSize" value="1048576" placeholder="bytes">
+
+                <label for="testRanks">Test Rank Count:</label>
+                <input type="number" id="testRanks" value="64" placeholder="ranks">
+
+                <button onclick="testPoint()">Test Point</button>
+            </div>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="regionCanvas" width="1200" height="700"></canvas>
+        </div>
+
+        <div class="legend">
+            <h3>Algorithm + Protocol Combinations</h3>
+            <div class="legend-grid" id="legendGrid"></div>
+        </div>
+
+        <div class="info-panel">
+            <h3>Point Information</h3>
+            <div id="infoContent">
+                <div class="info-item">
+                    <div class="info-label">Hover over the canvas or use the test point inputs above</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script src="tuner-visualizer.js"></script>
+</body>
+</html>
