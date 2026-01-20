@@ -703,13 +703,17 @@ function draw() {
 }
 
 function calculateBounds(regions) {
+    // Cap visualization at reasonable values
+    const MAX_DISPLAY_SIZE = 16 * 1024 * 1024 * 1024;  // 16 GB
+    const MAX_DISPLAY_RANKS = 2048;  // Reasonable max cluster size
+
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
 
     regions.forEach(region => {
         region.vertices.forEach(v => {
-            const x = Math.min(v.x, TUNER_MAX_SIZE);
-            const y = Math.min(v.y, TUNER_MAX_RANKS);
+            const x = Math.min(v.x, MAX_DISPLAY_SIZE);
+            const y = Math.min(v.y, MAX_DISPLAY_RANKS);
             minX = Math.min(minX, x);
             maxX = Math.max(maxX, x);
             minY = Math.min(minY, y);
@@ -720,6 +724,10 @@ function calculateBounds(regions) {
     // Use log scale for x-axis, linear for y-axis
     minX = Math.max(1, minX);
     minY = Math.max(1, minY);
+
+    // Force maximum bounds to display limits
+    maxX = MAX_DISPLAY_SIZE;
+    maxY = MAX_DISPLAY_RANKS;
 
     return { minX, maxX, minY, maxY };
 }
@@ -732,8 +740,12 @@ function drawRegion(region, bounds, width, height) {
 
     ctx.beginPath();
     region.vertices.forEach((v, i) => {
-        const x = dataToCanvas(v.x, bounds.minX, bounds.maxX, width, true);
-        const y = dataToCanvas(v.y, bounds.minY, bounds.maxY, height, false);
+        // Clamp vertices to display bounds for rendering
+        const clampedX = Math.min(v.x, bounds.maxX);
+        const clampedY = Math.min(v.y, bounds.maxY);
+
+        const x = dataToCanvas(clampedX, bounds.minX, bounds.maxX, width, true);
+        const y = dataToCanvas(clampedY, bounds.minY, bounds.maxY, height, false);
         if (i === 0) {
             ctx.moveTo(x, y);
         } else {
