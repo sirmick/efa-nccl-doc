@@ -90,7 +90,7 @@ const ALGORITHMS = {
     'NVLS_Tree_Simple': {
         name: 'NVLS Tree + Simple',
         color: '#f39c12',
-        enabled: true,
+        enabled: false,
         docLink: '../algorithms/nvls-tree-algorithm.md',
         formula: 'T = 2×α_nvls + 2×β_nvlink×S + 2×log₂(M)×α_net + 2×log₂(M)×β_net×S',
         params: 'M=nodes, α_nvls=NVLS latency, β_nvlink=1/NVLink BW, α_net=network latency, β_net=1/network BW',
